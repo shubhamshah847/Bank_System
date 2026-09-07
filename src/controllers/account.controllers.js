@@ -1,4 +1,5 @@
 import accountModel from "../models/account.model.js";
+import mongoose from "mongoose";
 
 const accountCreateController = async(req,res)=>{
     const user = req.user
@@ -37,8 +38,8 @@ catch(err){
 }
 const getAccountBalance = async(req,res)=>{
     const {accountId} = req.params
-    if(!accountId){
-       return res.status(401).json({
+    if(!accountId || !mongoose.isValidObjectId(accountId)){
+       return res.status(400).json({
             message:"account id is missing"
         })
     }
@@ -47,10 +48,16 @@ const getAccountBalance = async(req,res)=>{
         _id:accountId,
         user:req.user._id
     })
+    if(!account){
+        return res.status(404).json({
+            message:"account not found"
+        })
+    }
     const balance = await account.getBalance()
     res.status(200).json({
-       
-        message:`your balance is ${balance}`
+        accountId: account._id,
+        currency: account.currency,
+        balance
     })
 }
 catch(err){
