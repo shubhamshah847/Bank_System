@@ -179,15 +179,8 @@ console.log("toUserAccount2:", toUserAccount);
     });
 
     await ledgerModel.create({
-        account: fromUserAccount._id,
-        amount,
-        transaction: transaction._id,
-        type: "DEBIT"
-    });
-
-    await ledgerModel.create({
         account: toUserAccount._id,
-        amount,
+        amount: Number(amount),
         transaction: transaction._id,
         type: "CREDIT"
     });
