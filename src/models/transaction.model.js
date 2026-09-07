@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { userLogin } from "../controllers/auth.controller.js";
+
 
 const transactionSchema = new mongoose.Schema({
     fromAccount:{
@@ -21,13 +21,14 @@ const transactionSchema = new mongoose.Schema({
     },
     default:"PENDING"
     }, 
-    amounts:{
+    amount:{
         type:Number,
-        required:[0,"amount cant be a negative "]
-    } ,
+        required:[true,"amount is required"],
+        min: [0, "Amount cannot be negative"]
+    },
     idempotencyKey:{
         type:String,
-        requried:[true,"idempotency key is required for creating transaction"],
+        required:[true,"idempotency key is required for creating transaction"],
         index:true,
         unique:true
     }
@@ -36,6 +37,8 @@ const transactionSchema = new mongoose.Schema({
      timestamps:true
 })
 
-const transactionModel = mongoose.Model('transaction',transactionSchema)
+const transactionModel = mongoose.model('transaction',transactionSchema)
+
+
 export default transactionModel;
 

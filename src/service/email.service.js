@@ -41,7 +41,7 @@ const sendEmail = async (to, subject, text, html) => {
 };
 
 async function sendRegisterationEmail(userEmail,name) {
-    const subject = "Welcome to Bank System"
+    const subject = "Welcome to Bank System" 
     const text = `Hi ${name} . this is from shubham software . \n thanks for registering  `
     const html = ` <!DOCTYPE html>
 <html>

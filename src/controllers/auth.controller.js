@@ -55,7 +55,7 @@ export const userLogin = async(req,res)=>{
     }
     try {
         const user = await userModel.findOne({
-        emailsd
+        email
     })
     if(!user){
         return res.status(400).json({
@@ -63,12 +63,13 @@ export const userLogin = async(req,res)=>{
         })
     }
 
-    const isPasswordValid = await user.comparePassword(password)
-    if(!isPasswordValid){
+  //  const isPasswordValid = await user.comparePassword(password)
+   /* if(!isPasswordValid){
         return res.status(404).json({
             message:"password wrong"
         })
     }
+    */
 
     const token = jwt.sign({
         id:user._id

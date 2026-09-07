@@ -4,6 +4,8 @@ import authMiddleware from "../middleware/auth.middleware.js"
 import mongoose from "mongoose"
 import ledgerModel from "../models/ledger.model.js"
 import emailService from "../service/email.service.js"
+import userModel from "../models/user.model.js"
+import config from "../config/config.js"
 
 /*
 
@@ -26,9 +28,9 @@ const transactionController = async()=>{
      */
 
     const {fromAccount,toAccount,amount,idempotencyKey} = req.body
-    if(!fromAccount || !toAccount || !amounts || !idempotencyKey){
+    if(!fromAccount || !toAccount || !amount || !idempotencyKey){
         return res.status(400).json({
-            message:"fromAccount , toAccount , amounts , idempotencykey all are required"
+            message:"fromAccount , toAccount , amount , idempotencyKey all are required"
         })
     }
     const fromUserAccount = await accountModel.findOne({
@@ -69,14 +71,14 @@ const transactionController = async()=>{
             message:"trasaction is reversed "
         })
     }
-}
+
 
     /**
      * Check account status
      */
     // userEmail, name, amount, toAccount
 
-if(fromUserAccount.status!=="ACTIVE" || toUserAccount.status!=="ACTIVE"){
+    if(fromUserAccount.status!=="ACTIVE" || toUserAccount.status!=="ACTIVE"){
     res.status(400).json({
     message:"one of them acount is not active"
    })
@@ -134,10 +136,68 @@ if(fromUserAccount.status!=="ACTIVE" || toUserAccount.status!=="ACTIVE"){
    }
 
 }
+}
+const createInitialFundTransfer = async(req,res)=>{
+    console.log("MONGO URI:", config.MONGO_URI);
+    const {toAccount, amount , idempotencyKey} = req.body
+    if(!toAccount || !amount || !idempotencyKey){
+      return  res.status(400).json({
+            message:"amount,toAccount  and idempotency key reqruiered"
+        })
+    }
+    
+    const toUserAccount = await accountModel.findOne({
+        _id:toAccount
+    })
+console.log("toAccount received:", toAccount);
+console.log("toUserAccount:", toUserAccount);
 
-const createInitialFundTransfer = (req,res)=>{
+    if(!toUserAccount){
+       return res.status(400).json({
+            message:"invalid account"
+       
+        })
+    }
+    const fromUserAccount =await accountModel.findOne({
+        user:req.user._id
+    })
+    console.log("toAccount received:", toAccount);
+console.log("toUserAccount2:", toUserAccount);
+
+    if(!fromUserAccount){
+       return res.status(400).json({
+            message:"system user not found"
+        })
+    }
+ 
+    const transaction = await transactionModel.create({
+        fromAccount: fromUserAccount._id,
+        toAccount,
+        amount: Number(amount),
+        idempotencyKey,
+        status: "COMPLETED"
+    });
+
+    await ledgerModel.create({
+        account: fromUserAccount._id,
+        amount,
+        transaction: transaction._id,
+        type: "DEBIT"
+    });
+
+    await ledgerModel.create({
+        account: toUserAccount._id,
+        amount,
+        transaction: transaction._id,
+        type: "CREDIT"
+    });
+
+    res.status(200).json({
+        message: `initial fund transferred, ${amount}`
+    });
     
 }
+
 export default {
     transactionController,
     createInitialFundTransfer
